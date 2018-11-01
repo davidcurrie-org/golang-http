@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-      ORG               = 'davidcurrie'
+      ORG               = 'davidcurrie-org'
       APP_NAME          = 'golang-http'
       GIT_PROVIDER      = 'github.com'
       CHARTMUSEUM_CREDS = credentials('jenkins-x-chartmuseum')
@@ -17,7 +17,7 @@ pipeline {
           HELM_RELEASE = "$PREVIEW_NAMESPACE".toLowerCase()
         }
         steps {
-          dir ('/home/jenkins/go/src/github.com/davidcurrie/golang-http') {
+          dir ('/home/jenkins/go/src/github.com/davidcurrie-org/golang-http') {
             checkout scm
             sh "make linux"
             sh 'export VERSION=$PREVIEW_VERSION && skaffold build -f skaffold.yaml'
@@ -25,7 +25,7 @@ pipeline {
             sh "jx step validate --min-jx-version 1.2.36"
             sh "jx step post build --image \$JENKINS_X_DOCKER_REGISTRY_SERVICE_HOST:\$JENKINS_X_DOCKER_REGISTRY_SERVICE_PORT/$ORG/$APP_NAME:$PREVIEW_VERSION"
           }
-          dir ('/home/jenkins/go/src/github.com/davidcurrie/golang-http/charts/preview') {
+          dir ('/home/jenkins/go/src/github.com/davidcurrie-org/golang-http/charts/preview') {
             sh "make preview"
             sh "jx preview --app $APP_NAME --dir ../.."
           }
@@ -36,23 +36,23 @@ pipeline {
           branch 'master'
         }
         steps {
-          dir ('/home/jenkins/go/src/github.com/davidcurrie/golang-http') {
-            git 'https://github.com/davidcurrie/golang-http.git'
+          dir ('/home/jenkins/go/src/github.com/davidcurrie-org/golang-http') {
+            git 'https://github.com/davidcurrie-org/golang-http.git'
           }
-          dir ('/home/jenkins/go/src/github.com/davidcurrie/golang-http/charts/golang-http') {
+          dir ('/home/jenkins/go/src/github.com/davidcurrie-org/golang-http/charts/golang-http') {
             // until we switch to the new kubernetes / jenkins credential implementation use git credentials store
             sh "git config --global credential.helper store"
             sh "jx step validate --min-jx-version 1.1.73"
             sh "jx step git credentials"
           }
-          dir ('/home/jenkins/go/src/github.com/davidcurrie/golang-http') {
+          dir ('/home/jenkins/go/src/github.com/davidcurrie-org/golang-http') {
             // so we can retrieve the version in later steps
             sh "echo \$(jx-release-version) > VERSION"
           }
-          dir ('/home/jenkins/go/src/github.com/davidcurrie/golang-http/charts/golang-http') {
+          dir ('/home/jenkins/go/src/github.com/davidcurrie-org/golang-http/charts/golang-http') {
             sh "make tag"
           }
-          dir ('/home/jenkins/go/src/github.com/davidcurrie/golang-http') {
+          dir ('/home/jenkins/go/src/github.com/davidcurrie-org/golang-http') {
             sh "make build"
             sh 'export VERSION=`cat VERSION` && skaffold build -f skaffold.yaml'
             sh "jx step validate --min-jx-version 1.2.36"
@@ -65,7 +65,7 @@ pipeline {
           branch 'master'
         }
         steps {
-          dir ('/home/jenkins/go/src/github.com/davidcurrie/golang-http/charts/golang-http') {
+          dir ('/home/jenkins/go/src/github.com/davidcurrie-org/golang-http/charts/golang-http') {
             sh 'jx step changelog --version v\$(cat ../../VERSION)'
 
             // release the helm chart
